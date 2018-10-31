@@ -19,13 +19,13 @@ void setup() {
 }
 
 void TurnLeft(){
-  tank.setLeftMotorPWM(-255);
-  tank.setRightMotorPWM(255);
+  tank.setLeftMotorPWM(255);
+  tank.setRightMotorPWM(-255);
 }
 
 void TurnRight(){
-  tank.setLeftMotorPWM(255);
-  tank.setRightMotorPWM(-255);
+  tank.setLeftMotorPWM(-255);
+  tank.setRightMotorPWM(255);
 }
 
 //turns clockwise to theta
