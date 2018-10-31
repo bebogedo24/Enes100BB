@@ -23,13 +23,13 @@ void setup() {
 int initialAngle = enes.location.theta;
 
 void TurnLeft(){
-  tank.setLeftMotorPWM(-255);
-  tank.setRightMotorPWM(255);
+  tank.setLeftMotorPWM(255);
+  tank.setRightMotorPWM(-255);
 }
 
 void TurnRight(){
-  tank.setLeftMotorPWM(255);
-  tank.setRightMotorPWM(-255);
+  tank.setLeftMotorPWM(-255);
+  tank.setRightMotorPWM(255);
 }
 
 //turns clockwise to 90 degrees
