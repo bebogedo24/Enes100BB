@@ -28,7 +28,8 @@ void setup() {
 
 //turns clockwise to theta, meant to be used in loop until 1 is returned
 int turn_cw(double newTheta){
-  delay(100);
+  enes.turnOffMotors();
+  delay(150);
   enes.updateLocation();
   if(enes.location.theta > newTheta + TOLERANCE) {
     //turn right:
@@ -48,7 +49,8 @@ int turn_cw(double newTheta){
 
 //turns couner clockwise to theta, meant to be used in loop until 1 is returned
 int turn_ccw(double newTheta){
-  delay(100);
+  enes.turnOffMotors();
+  delay(150);
   enes.updateLocation();
   if(enes.location.theta > newTheta + TOLERANCE) {
     //turn left:
