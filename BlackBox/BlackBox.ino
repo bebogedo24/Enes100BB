@@ -28,8 +28,6 @@ void setup() {
 
 //turns clockwise to theta, meant to be used in loop until 1 is returned
 int turn_cw(double newTheta){
-  tank.turnOffMotors();
-  delay(150);
   enes.updateLocation();
   if(enes.location.theta > newTheta + TOLERANCE) {
     //turn right:
@@ -44,13 +42,13 @@ int turn_cw(double newTheta){
   } else {
     return 1;
   }
+  tank.turnOffMotors();
+  delay(150);
 }
 
 
 //turns couner clockwise to theta, meant to be used in loop until 1 is returned
 int turn_ccw(double newTheta){
-  tank.turnOffMotors();
-  delay(150);
   enes.updateLocation();
   if(enes.location.theta > newTheta + TOLERANCE) {
     //turn left:
@@ -67,6 +65,8 @@ int turn_ccw(double newTheta){
   } else {
     return 1;
   }
+  tank.turnOffMotors();
+  delay(150);
 }
 
 void loop() {
