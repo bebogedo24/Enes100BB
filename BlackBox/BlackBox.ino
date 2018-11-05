@@ -86,11 +86,11 @@ void loop() {
       tank.setLeftMotorPWM(255);  
       
     }else {
-      enes.println("done");
+      enes.println("arrived at center.");
       tank.turnOffMotors();
       
       enes.navigated();
-      Coordinate ret(GOAL_X, GOAL_Y);
+      Coordinate ret(enes.location.x, enes.location.y);
       enes.baseObjective(ret);
       
       while(!turn_cw(UP));
