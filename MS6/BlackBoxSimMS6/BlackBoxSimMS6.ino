@@ -30,6 +30,11 @@ double TOO_CLOSE_TO_WALL = .5;
 boolean arrivedAtCenter = false;
 boolean baseObjectivesAchieved = false;
 boolean pickedUpBlackBox = false;
+int count = 0;
+double averageTheta = 1;
+double previousTheta = 0;
+double currentTheta = 0;
+boolean continueTurning = false;
 
 
 int turn_cw(double newTheta);
@@ -66,21 +71,21 @@ double DistanceMeasurement(int Trig_Pin,int Echo_Pin){
 void TurnCW(){
   tank.setRightMotorPWM(255);
   tank.setLeftMotorPWM(-255);
-  delay(500); // May need to Calibrate
+  delay(750); // May need to Calibrate
   tank.turnOffMotors();
 
 }
 void TurnCCW(){
   tank.setRightMotorPWM(-255);
   tank.setLeftMotorPWM(255);
-  delay(500); // May need to Calibrate
+  delay(750); // May need to Calibrate
   tank.turnOffMotors();
   
 }
 void MoveForward(){
   tank.setRightMotorPWM(255);
   tank.setLeftMotorPWM(255);
-  delay(1000);
+  delay(50);
    
 }
 
@@ -88,43 +93,44 @@ void TurnLeftOrRight(double cm, String Direction){
   while(cm <= CLOSEST_DISTANCE){
     
     enes.updateLocation();
+    /*
     if ((enes.location.y - TOO_CLOSE_TO_WALL) < 0){  
-      TurnCCW(); 
-      enes.println("turning left");
+      while(!turn_ccw(UP)); 
+      enes.println("turning left too close to wall");
 
     } else if ((enes.location.y + TOO_CLOSE_TO_WALL) > 4){ // only turns left if not close to left wall
-      TurnCW(); 
-      enes.println("turning right");
+      while(!turn_cw(DOWN));
+      enes.println("turning right too close to wall");
        
-    } else if (Direction.equals("Center")){ // turns toward center
-      if (enes.location.y > 2){
-        TurnCW();       
+    } else if (Direction.equals("Center")){ */// turns toward center
+      if (enes.location.y > 1){
+        while(!turn_cw(DOWN));       
       } else {
-        TurnCCW();
+        while(!turn_ccw(UP));
       }
-      
+   /*   
     } else if (Direction.equals("Right")){
-      TurnCCW();   
+      while(!turn_ccw(UP));   
        
     } else {
-      TurnCW();
+      while(!turn_cw(DOWN));
       
     }
-    
+    */
     // Center has priority, because after the OSV is done sensing the center, it should sense the objects with the side sensors
     // May need to calibrate how far/long the OSV turns when something is sensed by the CENTER sensor, because of its blind spots
 
     if (Direction.equals("Center")){
       cm = enes.readDistanceSensor(1);//DistanceMeasurement(TRIG_PIN_CENTER,ECHO_PIN_CENTER);    
-      enes.println(cm);
+
       
     } else if (Direction.equals("Left")) {
       cm = enes.readDistanceSensor(0); // DistanceMeasurement(TRIG_PIN_LEFT,ECHO_PIN_LEFT);
-      enes.println(cm);
+
     
     } else if (Direction.equals("Right")){
       cm = enes.readDistanceSensor(2); //DistanceMeasurement(TRIG_PIN_RIGHT,ECHO_PIN_RIGHT);
-      enes.println(cm);
+
     }
   }
 }
@@ -132,71 +138,108 @@ void TurnLeftOrRight(double cm, String Direction){
 //turns clockwise to theta, meant to be used in loop until 1 is returned
 int turn_cw(double newTheta){
   enes.updateLocation();
+  
+  if(count == 1){
+    previousTheta = enes.location.theta;
+
+  } else if (count > 15){
+    currentTheta = enes.location.theta;
+    averageTheta = currentTheta - previousTheta;
+    count = 0;
+    
+  } count ++;
+  
+  if (averageTheta == 0){
+    tank.setRightMotorPWM(-123);
+    tank.setLeftMotorPWM(-123);
+    delay(750);
+    averageTheta = 1;
+    
+  }
   if(enes.location.theta > newTheta + TOLERANCE) {
     //turn right:
     tank.setRightMotorPWM(-123); //change back, multiply by -1
     tank.setLeftMotorPWM(123); //change back, multiply by -1
+    //enes.println("CW -- TRUE");
     return 0;
     
   } else if (enes.location.theta < newTheta - TOLERANCE) {
     //turn left:
     tank.setRightMotorPWM(123); //change back, multiply by -1
     tank.setLeftMotorPWM(-123); //change back, multiply by -1
+    //enes.println("CW -- FALSE");
     return 0;
     
   } else {
     return 1;
   }
-  tank.turnOffMotors();
-  delay(150);
-  
 }
 
 
 //turns couner clockwise to theta, meant to be used in loop until 1 is returned
 int turn_ccw(double newTheta){
   enes.updateLocation();
-  if(enes.location.theta > newTheta + TOLERANCE) {
+  
+   if(count == 1){
+    previousTheta = enes.location.theta;
+
+  } else if (count > 20){
+    currentTheta = enes.location.theta;
+    averageTheta = currentTheta - previousTheta;
+    count = 0;
+    
+  } count ++;
+  
+  if (averageTheta == 0){
+    tank.setRightMotorPWM(-123);
+    tank.setLeftMotorPWM(-123);
+    delay(500);
+    averageTheta = 1;
+    
+  }
+  if(enes.location.theta < newTheta - TOLERANCE) {
     //turn left:
     tank.setRightMotorPWM(123); //change back, multiply by -1
     tank.setLeftMotorPWM(-123); //change back, multiply by -1
+    //enes.println("CCW -- TRUE");
     return 0;    
 
-  } else if (enes.location.theta < newTheta - TOLERANCE) {
+  } else if (enes.location.theta > newTheta + TOLERANCE) {
     //turn right:
     tank.setRightMotorPWM(-123); //change back, multiply by -1
     tank.setLeftMotorPWM(123); //change back, multiply by -1
+    //enes.println("CCW -- FALSE");
     return 0;
     
   } else {
     return 1;
   }
-  tank.turnOffMotors();
-  delay(150);
 }
 
 
 void ObjectDetection() {
   int i = 0;
   while(true){  
-    cm_Left = enes.readDistanceSensor(0); //DistanceMeasurement(TRIG_PIN_LEFT,ECHO_PIN_LEFT); // Convert the time into a distance
-    cm_Center = enes.readDistanceSensor(1); //DistanceMeasurement(TRIG_PIN_CENTER, ECHO_PIN_CENTER); 
-    cm_Right = enes.readDistanceSensor(2); //DistanceMeasurement(TRIG_PIN_RIGHT,ECHO_PIN_RIGHT);
-
     for(int i = 0; i < 6; i++){
+      cm_Left = enes.readDistanceSensor(0); //DistanceMeasurement(TRIG_PIN_LEFT,ECHO_PIN_LEFT); // Convert the time into a distance
+      cm_Center = enes.readDistanceSensor(1); //DistanceMeasurement(TRIG_PIN_CENTER, ECHO_PIN_CENTER); 
+      cm_Right = enes.readDistanceSensor(2); //DistanceMeasurement(TRIG_PIN_RIGHT,ECHO_PIN_RIGHT);
+
       if(cm_Center <= CLOSEST_DISTANCE && i == 5){
         enes.println("Object Detected");
         TurnLeftOrRight(cm_Center, "Center");
-        MoveForward();
-          
+        // MoveForward();
+        
       } else if (cm_Left <= CLOSEST_DISTANCE && i == 5){
         TurnLeftOrRight(cm_Left, "Left");
         enes.println("Object Detected");    
-                MoveForward();
+        //MoveForward();
+        
       } else if (cm_Right <= CLOSEST_DISTANCE && i == 5){
         TurnLeftOrRight(cm_Right, "Right");
         enes.println("Object Detected");  
-                MoveForward();
+        //MoveForward();
+        
       }
     }      
     return;
@@ -229,17 +272,20 @@ void loop() {
     if(enes.location.x < (GOAL_X + TOLERANCE)){
       while(!turn_cw(0));
       ObjectDetection();
-      MoveForward();
-    
+      for(int a = 0; a<20; a++){
+        MoveForward();
+      }
  
     } else if(enes.location.y > (GOAL_Y + TOLERANCE)){
       while(!turn_cw(DOWN));
       ObjectDetection();
+      MoveForward();
 
       
     } else if(enes.location.y < (GOAL_Y - TOLERANCE)){
-      while(!turn_cw(UP));
+      while(!turn_ccw(UP));
       ObjectDetection();
+      MoveForward();
  
       
     }else {
